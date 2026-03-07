@@ -39,7 +39,9 @@
       - "{{ dotfiles_bootstrap_repo_name }}"
   environment:
     VCSH_REPO_D: "{{ dotfiles_bootstrap_vcsh_repo_dir }}"
-  when: not dotfiles_bootstrap_repo_stat.stat.exists
+  when:
+    - bootstrap_clone_dotfiles_repo | bool
+    - not dotfiles_bootstrap_repo_stat.stat.exists
 
 - name: Check whether mr bootstrap config is present
   ansible.builtin.stat:

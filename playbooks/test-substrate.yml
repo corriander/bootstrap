@@ -1,0 +1,13 @@
+---
+- name: Test substrate tasks only
+  hosts: wsl
+  gather_facts: true
+  vars_files:
+    - ../group_vars/all.yml
+  tasks:
+    - name: Import WSL bootstrap role
+      ansible.builtin.import_role:
+        name: wsl_bootstrap
+      vars:
+        bootstrap_run_mr_update: false
+        bootstrap_clone_dotfiles_repo: false

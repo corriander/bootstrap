@@ -20,3 +20,4 @@ dotfiles_bootstrap_config_dir: "{{ ansible_env.HOME }}/.config/vcsh"
 dotfiles_bootstrap_mrconfig_path: "{{ ansible_env.HOME }}/.mrconfig"
 
 bootstrap_run_mr_update: true
+bootstrap_clone_dotfiles_repo: true

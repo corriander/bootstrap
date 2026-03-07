@@ -2,5 +2,7 @@
 - name: Bootstrap WSL substrate and dotfiles handoff
   hosts: wsl
   gather_facts: true
+  vars_files:
+    - ../group_vars/all.yml
   roles:
     - role: wsl_bootstrap
