@@ -5,6 +5,13 @@
   vars_files:
     - ../group_vars/all.yml
   tasks:
+    - name: Import WSL preflight role
+      ansible.builtin.import_role:
+        name: wsl_preflight
+      vars:
+        bootstrap_require_wsl: false
+        bootstrap_clone_dotfiles_repo: false
+
     - name: Import WSL bootstrap role
       ansible.builtin.import_role:
         name: wsl_bootstrap

@@ -1,0 +1,53 @@
+---
+- name: Check whether /proc/version contains a WSL marker
+  ansible.builtin.command:
+    argv:
+      - grep
+      - -i
+      - microsoft
+      - /proc/version
+  register: wsl_marker_check
+  changed_when: false
+  failed_when: false
+
+- name: Assert supported host platform
+  ansible.builtin.assert:
+    that:
+      - ansible_os_family == "Debian"
+      - ansible_distribution == "Ubuntu"
+      - ansible_distribution_version is version('25.10', '>=')
+      - not bootstrap_require_wsl | bool or ansible_env.WSL_DISTRO_NAME is defined or wsl_marker_check.rc == 0
+    fail_msg: >-
+      This bootstrap currently supports Ubuntu 25.10+ on WSL2. Override
+      bootstrap_require_wsl=false only if you are intentionally testing outside
+      WSL.
+    success_msg: Host platform matches the current WSL bootstrap target.
+
+- name: Verify privilege escalation works
+  become: true
+  ansible.builtin.command:
+    argv:
+      - /usr/bin/true
+  changed_when: false
+
+- name: Check whether the configured dotfiles host resolves
+  ansible.builtin.shell: |
+    set -e
+    url='{{ dotfiles_bootstrap_repo_url }}'
+    host="$(printf '%s\n' "$url" | sed -nE 's#.*@([^:/]+).*#\1#p')"
+    if [ -z "$host" ]; then
+      host="$(printf '%s\n' "$url" | sed -nE 's#https?://([^/]+)/.*#\1#p')"
+    fi
+    [ -n "$host" ] && getent hosts "$host" >/dev/null
+  args:
+    executable: /bin/bash
+  register: dotfiles_host_resolution
+  changed_when: false
+  failed_when: bootstrap_clone_dotfiles_repo | bool and dotfiles_host_resolution.rc != 0
+
+- name: Report configured handoff mode
+  ansible.builtin.debug:
+    msg:
+      - "dotfiles bootstrap clone enabled: {{ bootstrap_clone_dotfiles_repo }}"
+      - "mr update enabled: {{ bootstrap_run_mr_update }}"
+      - "dotfiles bootstrap remote: {{ dotfiles_bootstrap_repo_url }}"

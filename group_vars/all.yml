@@ -21,3 +21,4 @@ dotfiles_bootstrap_mrconfig_path: "{{ ansible_env.HOME }}/.mrconfig"
 
 bootstrap_run_mr_update: true
 bootstrap_clone_dotfiles_repo: true
+bootstrap_require_wsl: true

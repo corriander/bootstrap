@@ -5,4 +5,9 @@
   vars_files:
     - ../group_vars/all.yml
   roles:
+    - role: wsl_preflight
+      tags:
+        - preflight
     - role: wsl_bootstrap
+      tags:
+        - bootstrap

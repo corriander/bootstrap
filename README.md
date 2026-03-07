@@ -69,16 +69,23 @@ cd ~/repos/bootstrap
 ansible-playbook -i inventories/local.ini playbooks/wsl-bootstrap.yml --ask-become-pass
 ```
 
+Run only the preflight checks:
+
+```bash
+ansible-playbook -i inventories/local.ini playbooks/wsl-bootstrap.yml --ask-become-pass --tags preflight
+```
+
 ## What This Playbook Does
 
 The WSL bootstrap role currently:
 
-1. Updates `apt` metadata.
-2. Installs the base packages required for `mr`/`vcsh` bootstrap.
-3. Ensures the expected local directory layout exists.
-4. Checks whether the `bootstrap` vcsh repo is already present.
-5. Clones the `bootstrap` repo via `vcsh` if missing.
-6. Runs `mr update` once `.mrconfig` is available.
+1. Runs preflight checks for platform, privilege escalation, and remote host resolution.
+2. Updates `apt` metadata.
+3. Installs the base packages required for `mr`/`vcsh` bootstrap.
+4. Ensures the expected local directory layout exists.
+5. Checks whether the `bootstrap` vcsh repo is already present.
+6. Clones the `bootstrap` repo via `vcsh` if missing.
+7. Runs `mr update` once `.mrconfig` is available.
 
 This deliberately avoids managing optional installables for now.
 
@@ -97,6 +104,15 @@ perfectly model WSL behaviour. It is still useful for validating:
 - apt/package tasks
 - directory creation
 - idempotence of non-SSH tasks
+
+Run the Docker substrate test with:
+
+```bash
+./tools/run-docker-test.sh
+```
+
+That script runs the substrate play twice in the same Ubuntu 25.10 container
+and fails unless the second pass reports `changed=0`.
 
 Clone/update behaviour against private remotes is better validated in the real
 WSL target once the base tasks are known-good.
