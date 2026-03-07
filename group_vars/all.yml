@@ -1,0 +1,22 @@
+---
+wsl_bootstrap_packages:
+  - ca-certificates
+  - curl
+  - git
+  - myrepos
+  - openssh-client
+  - python3
+  - python3-apt
+  - vcsh
+  - zsh
+  - starship
+
+dotfiles_bootstrap_repo_name: bootstrap
+dotfiles_bootstrap_repo_url: git@bitbucket.org:corriander/dotfiles-bootstrap.git
+dotfiles_bootstrap_repo_branch: main
+dotfiles_bootstrap_repo_dir: "{{ ansible_env.HOME }}/.local/share/vcsh/repos/{{ dotfiles_bootstrap_repo_name }}.git"
+dotfiles_bootstrap_vcsh_repo_dir: "{{ ansible_env.HOME }}/.local/share/vcsh/repos"
+dotfiles_bootstrap_config_dir: "{{ ansible_env.HOME }}/.config/vcsh"
+dotfiles_bootstrap_mrconfig_path: "{{ ansible_env.HOME }}/.mrconfig"
+
+bootstrap_run_mr_update: true

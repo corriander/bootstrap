@@ -1,0 +1,58 @@
+---
+- name: Update apt cache
+  become: true
+  ansible.builtin.apt:
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Install base bootstrap packages
+  become: true
+  ansible.builtin.apt:
+    name: "{{ wsl_bootstrap_packages }}"
+    state: present
+
+- name: Ensure vcsh repository directory exists
+  ansible.builtin.file:
+    path: "{{ dotfiles_bootstrap_vcsh_repo_dir }}"
+    state: directory
+    mode: "0755"
+
+- name: Ensure vcsh config directory exists
+  ansible.builtin.file:
+    path: "{{ dotfiles_bootstrap_config_dir }}"
+    state: directory
+    mode: "0755"
+
+- name: Check whether dotfiles bootstrap vcsh repo already exists
+  ansible.builtin.stat:
+    path: "{{ dotfiles_bootstrap_repo_dir }}"
+  register: dotfiles_bootstrap_repo_stat
+
+- name: Clone dotfiles bootstrap vcsh repo when missing
+  ansible.builtin.command:
+    argv:
+      - vcsh
+      - clone
+      - -b
+      - "{{ dotfiles_bootstrap_repo_branch }}"
+      - "{{ dotfiles_bootstrap_repo_url }}"
+      - "{{ dotfiles_bootstrap_repo_name }}"
+  environment:
+    VCSH_REPO_D: "{{ dotfiles_bootstrap_vcsh_repo_dir }}"
+  when: not dotfiles_bootstrap_repo_stat.stat.exists
+
+- name: Check whether mr bootstrap config is present
+  ansible.builtin.stat:
+    path: "{{ dotfiles_bootstrap_mrconfig_path }}"
+  register: bootstrap_mrconfig_stat
+
+- name: Run mr update after bootstrap repo is present
+  ansible.builtin.command:
+    argv:
+      - mr
+      - update
+  args:
+    chdir: "{{ ansible_env.HOME }}"
+  when:
+    - bootstrap_run_mr_update | bool
+    - bootstrap_mrconfig_stat.stat.exists

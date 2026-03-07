@@ -1,0 +1,6 @@
+---
+- name: Bootstrap WSL substrate and dotfiles handoff
+  hosts: wsl
+  gather_facts: true
+  roles:
+    - role: wsl_bootstrap
