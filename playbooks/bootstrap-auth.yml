@@ -1,0 +1,13 @@
+---
+- name: Prepare temporary bootstrap authentication
+  hosts: wsl
+  gather_facts: true
+  vars_files:
+    - ../group_vars/all.yml
+  roles:
+    - role: wsl_preflight
+      tags:
+        - preflight
+    - role: bootstrap_auth
+      tags:
+        - auth

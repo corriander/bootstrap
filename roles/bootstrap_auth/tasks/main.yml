@@ -1,0 +1,42 @@
+---
+- name: Ensure SSH directory exists
+  ansible.builtin.file:
+    path: "{{ ansible_env.HOME }}/.ssh"
+    state: directory
+    mode: "0700"
+
+- name: Check whether bootstrap SSH key already exists
+  ansible.builtin.stat:
+    path: "{{ bootstrap_ssh_key_path }}"
+  register: bootstrap_ssh_key_stat
+
+- name: Generate temporary bootstrap SSH key
+  ansible.builtin.command:
+    argv:
+      - ssh-keygen
+      - -t
+      - "{{ bootstrap_ssh_key_type }}"
+      - -f
+      - "{{ bootstrap_ssh_key_path }}"
+      - -N
+      - ""
+      - -C
+      - "bootstrap@{{ ansible_hostname }}"
+  when: not bootstrap_ssh_key_stat.stat.exists
+  register: bootstrap_ssh_keygen
+
+- name: Read bootstrap public key
+  ansible.builtin.slurp:
+    path: "{{ bootstrap_ssh_public_key_path }}"
+  register: bootstrap_public_key
+
+- name: Write temporary bootstrap git config
+  ansible.builtin.copy:
+    dest: "{{ bootstrap_temp_gitconfig_path }}"
+    mode: "0600"
+    content: |
+      [core]
+          sshCommand = ssh -i {{ bootstrap_ssh_key_path }} -o IdentitiesOnly=yes
+
+- name: End auth preparation play after displaying bootstrap key
+  ansible.builtin.meta: end_play

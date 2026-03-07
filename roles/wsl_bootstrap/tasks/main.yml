@@ -4,12 +4,14 @@
   ansible.builtin.apt:
     update_cache: true
     cache_valid_time: 3600
+  when: bootstrap_manage_packages | bool
 
 - name: Install base bootstrap packages
   become: true
   ansible.builtin.apt:
     name: "{{ wsl_bootstrap_packages }}"
     state: present
+  when: bootstrap_manage_packages | bool
 
 - name: Ensure vcsh repository directory exists
   ansible.builtin.file:
@@ -28,6 +30,11 @@
     path: "{{ dotfiles_bootstrap_repo_dir }}"
   register: dotfiles_bootstrap_repo_stat
 
+- name: Check whether temporary bootstrap git config exists
+  ansible.builtin.stat:
+    path: "{{ bootstrap_temp_gitconfig_path }}"
+  register: bootstrap_temp_gitconfig_stat
+
 - name: Clone dotfiles bootstrap vcsh repo when missing
   ansible.builtin.command:
     argv:
@@ -39,9 +46,11 @@
       - "{{ dotfiles_bootstrap_repo_name }}"
   environment:
     VCSH_REPO_D: "{{ dotfiles_bootstrap_vcsh_repo_dir }}"
+    GIT_CONFIG_GLOBAL: "{{ bootstrap_temp_gitconfig_path }}"
   when:
     - bootstrap_clone_dotfiles_repo | bool
     - not dotfiles_bootstrap_repo_stat.stat.exists
+    - bootstrap_temp_gitconfig_stat.stat.exists
 
 - name: Check whether mr bootstrap config is present
   ansible.builtin.stat:
@@ -55,6 +64,25 @@
       - update
   args:
     chdir: "{{ ansible_env.HOME }}"
+  environment:
+    GIT_CONFIG_GLOBAL: "{{ bootstrap_temp_gitconfig_path if bootstrap_temp_gitconfig_stat.stat.exists else omit }}"
   when:
     - bootstrap_run_mr_update | bool
     - bootstrap_mrconfig_stat.stat.exists
+
+- name: Remove temporary bootstrap git config when requested
+  ansible.builtin.file:
+    path: "{{ bootstrap_temp_gitconfig_path }}"
+    state: absent
+  when:
+    - bootstrap_cleanup_temp_gitconfig | bool
+    - bootstrap_temp_gitconfig_stat.stat.exists
+
+- name: Remove temporary bootstrap SSH key when requested
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - "{{ bootstrap_ssh_key_path }}"
+    - "{{ bootstrap_ssh_public_key_path }}"
+  when: bootstrap_cleanup_temp_key | bool

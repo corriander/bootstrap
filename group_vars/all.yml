@@ -11,14 +11,23 @@ wsl_bootstrap_packages:
   - zsh
   - starship
 
-dotfiles_bootstrap_repo_name: bootstrap
-dotfiles_bootstrap_repo_url: git@bitbucket.org:corriander/dotfiles-bootstrap.git
-dotfiles_bootstrap_repo_branch: main
-dotfiles_bootstrap_repo_dir: "{{ ansible_env.HOME }}/.local/share/vcsh/repos/{{ dotfiles_bootstrap_repo_name }}.git"
-dotfiles_bootstrap_vcsh_repo_dir: "{{ ansible_env.HOME }}/.local/share/vcsh/repos"
+# WARNING: This must be exactly in sync with the mr config in ~/.config/mr/repos-available
 dotfiles_bootstrap_config_dir: "{{ ansible_env.HOME }}/.config/vcsh"
 dotfiles_bootstrap_mrconfig_path: "{{ ansible_env.HOME }}/.mrconfig"
+dotfiles_bootstrap_vcsh_repo_dir: "{{ ansible_env.HOME }}/.local/share/vcsh/repos"
+dotfiles_bootstrap_repo_name: bootstrap
+dotfiles_bootstrap_repo_url: git@github.com:corriander/mr-bootstrap.git
+dotfiles_bootstrap_repo_dir: "{{ ansible_env.HOME }}/.local/share/vcsh/repos/{{ dotfiles_bootstrap_repo_name }}.git"
+dotfiles_bootstrap_repo_branch: main
 
 bootstrap_run_mr_update: true
 bootstrap_clone_dotfiles_repo: true
 bootstrap_require_wsl: true
+bootstrap_prepare_auth: true
+bootstrap_manage_packages: true
+bootstrap_ssh_key_type: ed25519
+bootstrap_ssh_key_path: "{{ ansible_env.HOME }}/.ssh/id_bootstrap"
+bootstrap_ssh_public_key_path: "{{ bootstrap_ssh_key_path }}.pub"
+bootstrap_temp_gitconfig_path: "{{ ansible_env.HOME }}/.gitconfig"
+bootstrap_cleanup_temp_gitconfig: false
+bootstrap_cleanup_temp_key: false

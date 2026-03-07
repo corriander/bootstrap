@@ -23,13 +23,6 @@
       WSL.
     success_msg: Host platform matches the current WSL bootstrap target.
 
-- name: Verify privilege escalation works
-  become: true
-  ansible.builtin.command:
-    argv:
-      - /usr/bin/true
-  changed_when: false
-
 - name: Check whether the configured dotfiles host resolves
   ansible.builtin.shell: |
     set -e

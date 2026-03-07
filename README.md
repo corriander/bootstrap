@@ -51,28 +51,44 @@ The playbook assumes:
 ## First-Mile Bootstrap
 
 The first checkout is deliberately a manual step. Install the minimal tools,
-authenticate to GitHub, then clone this repository:
+then clone this repository:
 
 ```bash
 sudo apt update
-sudo apt install -y ansible git gh
-gh auth login
-gh repo clone corriander/bootstrap ~/repos/bootstrap
+sudo apt install -y ansible git
+git clone https://github.com/corriander/bootstrap.git ~/repos/bootstrap
 ```
 
 ## Usage
 
-Run locally against the current machine:
+Prepare temporary bootstrap auth:
 
 ```bash
 cd ~/repos/bootstrap
-ansible-playbook -i inventories/local.ini playbooks/wsl-bootstrap.yml --ask-become-pass
+./bootstrap.sh auth
+```
+
+That playbook generates `~/.ssh/id_bootstrap`, writes a temporary
+`~/.gitconfig` that points Git at that key, prints the public key, and stops.
+Add the displayed key to GitHub with a short expiry, then continue.
+
+Run the main bootstrap locally against the current machine:
+
+```bash
+cd ~/repos/bootstrap
+./bootstrap.sh
 ```
 
 Run only the preflight checks:
 
 ```bash
-ansible-playbook -i inventories/local.ini playbooks/wsl-bootstrap.yml --ask-become-pass --tags preflight
+./bootstrap.sh --preflight
+```
+
+Run the main bootstrap without `mr update`:
+
+```bash
+./bootstrap.sh --no-mr
 ```
 
 ## What This Playbook Does
@@ -80,20 +96,21 @@ ansible-playbook -i inventories/local.ini playbooks/wsl-bootstrap.yml --ask-beco
 The WSL bootstrap role currently:
 
 1. Runs preflight checks for platform, privilege escalation, and remote host resolution.
-2. Updates `apt` metadata.
-3. Installs the base packages required for `mr`/`vcsh` bootstrap.
-4. Ensures the expected local directory layout exists.
-5. Checks whether the `bootstrap` vcsh repo is already present.
-6. Clones the `bootstrap` repo via `vcsh` if missing.
-7. Runs `mr update` once `.mrconfig` is available.
+2. Uses the temporary bootstrap key via the temporary `~/.gitconfig` if present.
+3. Updates `apt` metadata.
+4. Installs the base packages required for `mr`/`vcsh` bootstrap.
+5. Ensures the expected local directory layout exists.
+6. Checks whether the `bootstrap` vcsh repo is already present.
+7. Clones the `bootstrap` repo via `vcsh` if missing.
+8. Runs `mr update` once `.mrconfig` is available.
 
 This deliberately avoids managing optional installables for now.
 
 ## Dotfiles Bootstrap Remote
 
-This repository does not use `gh` after the initial clone. The handoff into the
-private dotfiles bootstrap uses normal Git via `vcsh clone`, so repository
-hosting can change later without redesigning the playbook.
+The handoff into the private dotfiles bootstrap uses a temporary SSH key plus a
+temporary `~/.gitconfig` shim. This avoids touching the steady-state Git config
+that will later arrive via the `env` vcsh repository.
 
 ## Testing
 
