@@ -108,12 +108,15 @@ The WSL bootstrap role currently:
 2. Uses the temporary bootstrap key via the temporary `~/.gitconfig` if present.
 3. Updates `apt` metadata.
 4. Installs the base packages required for `mr`/`vcsh` bootstrap.
-5. Ensures the expected local directory layout exists.
-6. Checks whether the `bootstrap` vcsh repo is already present.
-7. Clones the `bootstrap` repo via `vcsh` if missing.
-8. Runs plain `mr update` after bootstrap prep unless `--no-mr` is used.
+5. Installs Homebrew by default.
+6. Installs Oh My Zsh by default.
+7. Ensures the expected local directory layout exists.
+8. Checks whether the `bootstrap` vcsh repo is already present.
+9. Clones the `bootstrap` repo via `vcsh` if missing.
+10. Runs plain `mr update` after bootstrap prep unless `--no-mr` is used.
 
-This deliberately avoids managing optional installables for now.
+Default bootstrap installs currently include Homebrew and Oh My Zsh in addition
+to the apt package substrate.
 
 ## Dotfiles Bootstrap Remote
 

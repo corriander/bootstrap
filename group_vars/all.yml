@@ -25,9 +25,12 @@ bootstrap_clone_dotfiles_repo: true
 bootstrap_require_wsl: true
 bootstrap_prepare_auth: true
 bootstrap_manage_packages: true
+install_homebrew: true
+install_oh_my_zsh: true
 bootstrap_ssh_key_type: ed25519
 bootstrap_ssh_key_path: "{{ ansible_env.HOME }}/.ssh/id_bootstrap"
 bootstrap_ssh_public_key_path: "{{ bootstrap_ssh_key_path }}.pub"
 bootstrap_temp_gitconfig_path: "{{ ansible_env.HOME }}/.gitconfig"
 bootstrap_cleanup_temp_gitconfig: false
 bootstrap_cleanup_temp_key: false
+homebrew_prefix: "{{ ansible_env.HOME }}/.linuxbrew"
