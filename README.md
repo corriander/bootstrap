@@ -110,9 +110,10 @@ The WSL bootstrap role currently:
 4. Installs the base packages required for `mr`/`vcsh` bootstrap.
 5. Installs Oh My Zsh by default.
 6. Ensures the expected local directory layout exists.
-7. Checks whether the `bootstrap` vcsh repo is already present.
-8. Clones the `bootstrap` repo via `vcsh` if missing.
-9. Runs plain `mr update` after bootstrap prep unless `--no-mr` is used.
+7. Seeds GitHub SSH host trust for bootstrap clones.
+8. Checks whether the `bootstrap` vcsh repo is already present.
+9. Clones the `bootstrap` repo via `vcsh` if missing.
+10. Runs plain `mr update` after bootstrap prep unless `--no-mr` is used.
 
 Default bootstrap installs currently include Oh My Zsh in addition to the apt
 package substrate.

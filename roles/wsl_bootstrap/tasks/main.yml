@@ -45,6 +45,32 @@
     state: directory
     mode: "0755"
 
+- name: Ensure SSH directory exists
+  ansible.builtin.file:
+    path: "{{ ansible_env.HOME }}/.ssh"
+    state: directory
+    mode: "0700"
+
+- name: Fetch GitHub SSH host keys
+  ansible.builtin.command:
+    argv:
+      - ssh-keyscan
+      - github.com
+  register: bootstrap_github_hostkeys
+  changed_when: false
+  when: bootstrap_clone_dotfiles_repo | bool
+
+- name: Trust GitHub SSH host keys
+  ansible.builtin.known_hosts:
+    path: "{{ ansible_env.HOME }}/.ssh/known_hosts"
+    name: github.com
+    key: "{{ item }}"
+    state: present
+  loop: "{{ bootstrap_github_hostkeys.stdout_lines }}"
+  when:
+    - bootstrap_clone_dotfiles_repo | bool
+    - bootstrap_github_hostkeys.stdout_lines | length > 0
+
 - name: Check whether dotfiles bootstrap vcsh repo already exists
   ansible.builtin.stat:
     path: "{{ dotfiles_bootstrap_repo_dir }}"
