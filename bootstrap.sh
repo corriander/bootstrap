@@ -7,14 +7,14 @@ usage() {
   cat <<'EOF'
 Usage:
   ./bootstrap.sh auth [extra ansible args...]
-  ./bootstrap.sh [--dry-run] [--no-mr] [--preflight] [extra ansible args...]
+  ./bootstrap.sh [--dry-run] [--with-mr] [--preflight] [extra ansible args...]
 
 Modes:
   auth        Generate the temporary bootstrap SSH key and temporary ~/.gitconfig.
   default     Run the main bootstrap playbook.
 
 Options:
-  --no-mr         Skip the final mr update step.
+  --with-mr       Run `mr update` inside Ansible after bootstrap prep.
   --preflight     Run only the preflight checks.
   --dry-run       Run Ansible in check mode.
   -h, --help      Show this help text.
@@ -52,16 +52,16 @@ Add this temporary public key to GitHub with a short expiry:
 $(<"${pubkey}")
 
 After approving the key, continue with:
-  ./bootstrap.sh run --no-mr
+  ./bootstrap.sh
 
-When that looks right, run:
-  ./bootstrap.sh run
+Then run:
+  mr update
 EOF
   fi
 }
 
 run_main() {
-  local skip_mr=0
+  local with_mr=0
   local preflight_only=0
   local dry_run=0
   local use_become_prompt=0
@@ -69,8 +69,8 @@ run_main() {
 
   while (($#)); do
     case "$1" in
-      --no-mr)
-        skip_mr=1
+      --with-mr)
+        with_mr=1
         shift
         ;;
       --preflight)
@@ -102,8 +102,8 @@ run_main() {
     cmd+=(--check)
   fi
 
-  if [[ "${skip_mr}" -eq 1 ]]; then
-    cmd+=(-e bootstrap_run_mr_update=false)
+  if [[ "${with_mr}" -eq 1 ]]; then
+    cmd+=(-e bootstrap_run_mr_update=true)
   fi
 
   cd "${ROOT_DIR}"

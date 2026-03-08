@@ -79,16 +79,22 @@ cd ~/repos/bootstrap
 ./bootstrap.sh
 ```
 
+Then run your dotfiles/config bootstrap explicitly:
+
+```bash
+mr update
+```
+
 Run only the preflight checks:
 
 ```bash
 ./bootstrap.sh --preflight
 ```
 
-Run the main bootstrap without `mr update`:
+Run the main bootstrap and include `mr update` inside Ansible:
 
 ```bash
-./bootstrap.sh --no-mr
+./bootstrap.sh --with-mr
 ```
 
 ## What This Playbook Does
@@ -102,7 +108,7 @@ The WSL bootstrap role currently:
 5. Ensures the expected local directory layout exists.
 6. Checks whether the `bootstrap` vcsh repo is already present.
 7. Clones the `bootstrap` repo via `vcsh` if missing.
-8. Runs `mr update` once `.mrconfig` is available.
+8. Leaves the host ready for an explicit `mr update`.
 
 This deliberately avoids managing optional installables for now.
 
@@ -111,6 +117,10 @@ This deliberately avoids managing optional installables for now.
 The handoff into the private dotfiles bootstrap uses a temporary SSH key plus a
 temporary `~/.gitconfig` shim. This avoids touching the steady-state Git config
 that will later arrive via the `env` vcsh repository.
+
+By default, the wrapper stops after the bootstrap repo and prerequisites are in
+place. This keeps `mr update` transparent and rerunnable as a normal user
+operation instead of hiding it inside Ansible.
 
 ## Testing
 

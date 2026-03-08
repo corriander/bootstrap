@@ -20,7 +20,7 @@ dotfiles_bootstrap_repo_url: git@github.com:corriander/mr-bootstrap.git
 dotfiles_bootstrap_repo_dir: "{{ ansible_env.HOME }}/.local/share/vcsh/repos/{{ dotfiles_bootstrap_repo_name }}.git"
 dotfiles_bootstrap_repo_branch: main
 
-bootstrap_run_mr_update: true
+bootstrap_run_mr_update: false
 bootstrap_clone_dotfiles_repo: true
 bootstrap_require_wsl: true
 bootstrap_prepare_auth: true
