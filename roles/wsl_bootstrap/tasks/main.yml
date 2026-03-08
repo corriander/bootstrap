@@ -13,6 +13,31 @@
     state: present
   when: bootstrap_manage_packages | bool
 
+- name: Ensure local bin directory exists
+  ansible.builtin.file:
+    path: "{{ ansible_env.HOME }}/.local/bin"
+    state: directory
+    mode: "0755"
+
+- name: Check whether Ubuntu/Debian fdfind binary exists
+  ansible.builtin.stat:
+    path: /usr/bin/fdfind
+  register: bootstrap_fdfind_stat
+
+- name: Check whether fd shim already exists
+  ansible.builtin.stat:
+    path: "{{ ansible_env.HOME }}/.local/bin/fd"
+  register: bootstrap_fd_shim_stat
+
+- name: Provide fd shim for Debian-style fdfind packaging
+  ansible.builtin.file:
+    src: /usr/bin/fdfind
+    dest: "{{ ansible_env.HOME }}/.local/bin/fd"
+    state: link
+  when:
+    - bootstrap_fdfind_stat.stat.exists
+    - not bootstrap_fd_shim_stat.stat.exists
+
 - name: Check whether Oh My Zsh is already installed
   ansible.builtin.stat:
     path: "{{ ansible_env.HOME }}/.oh-my-zsh"
