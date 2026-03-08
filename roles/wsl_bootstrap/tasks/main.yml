@@ -13,24 +13,6 @@
     state: present
   when: bootstrap_manage_packages | bool
 
-- name: Check whether Homebrew is already installed
-  ansible.builtin.stat:
-    path: "{{ homebrew_prefix }}/bin/brew"
-  register: bootstrap_homebrew_stat
-
-- name: Install Homebrew
-  ansible.builtin.shell: |
-    set -euo pipefail
-    NONINTERACTIVE=1 /bin/bash -c \
-      "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-  args:
-    executable: /bin/bash
-  environment:
-    NONINTERACTIVE: "1"
-  when:
-    - install_homebrew | bool
-    - not bootstrap_homebrew_stat.stat.exists
-
 - name: Check whether Oh My Zsh is already installed
   ansible.builtin.stat:
     path: "{{ ansible_env.HOME }}/.oh-my-zsh"
