@@ -112,6 +112,18 @@ Also remove the temporary bootstrap SSH key pair:
 ./bootstrap.sh clean --all
 ```
 
+Retire bootstrap tooling from a host that will not need it again:
+
+```bash
+./bootstrap.sh retire
+```
+
+Also remove the `ansible` package during retire:
+
+```bash
+./bootstrap.sh retire --rm-ansible
+```
+
 ## What This Playbook Does
 
 The WSL bootstrap role currently:
@@ -145,6 +157,14 @@ The temporary `~/.gitconfig` is created only for the main bootstrap run. It is
 removed automatically after a successful run, and also removed automatically
 when `--no-mr` is used. If you need to clear bootstrap leftovers manually, use
 `./bootstrap.sh clean`.
+
+`./bootstrap.sh retire` is the stronger one-shot teardown. It removes the
+temporary bootstrap auth state and deletes the local `~/repos/bootstrap`
+checkout, but leaves `ansible` and any already-bootstrapped dotfiles/repos in
+place.
+
+Use `./bootstrap.sh retire --rm-ansible` if you also want to remove the
+`ansible` package from the host via `apt`.
 
 ## Testing
 

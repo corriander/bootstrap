@@ -8,11 +8,13 @@ usage() {
 Usage:
   ./bootstrap.sh auth [extra ansible args...]
   ./bootstrap.sh clean [--all]
+  ./bootstrap.sh retire [--rm-ansible]
   ./bootstrap.sh [--dry-run] [--no-mr] [--preflight] [extra ansible args...]
 
 Modes:
   auth        Generate or reuse the temporary bootstrap SSH key.
   clean       Remove leftover temporary bootstrap state.
+  retire      Remove bootstrap state and this local bootstrap checkout.
   default     Run the main bootstrap playbook.
 
 Options:
@@ -20,6 +22,7 @@ Options:
   --preflight     Run only the preflight checks.
   --dry-run       Run Ansible in check mode.
   --all           With `clean`, also remove the bootstrap SSH key pair.
+  --rm-ansible    With `retire`, remove the `ansible` package via apt.
   -h, --help      Show this help text.
 EOF
 }
@@ -112,6 +115,57 @@ run_cleanup() {
       fi
     done
   fi
+}
+
+run_retire() {
+  local remove_ansible=0
+
+  if (($#)); then
+    while (($#)); do
+      case "$1" in
+        --rm-ansible)
+          remove_ansible=1
+          shift
+          ;;
+        -h|--help)
+          usage
+          exit 0
+          ;;
+        *)
+          echo "Unknown retire option: $1" >&2
+          usage >&2
+          return 1
+          ;;
+      esac
+    done
+  fi
+
+  run_cleanup --all
+
+  if [[ "${remove_ansible}" -eq 1 ]]; then
+    echo "Removing ansible package..." >&2
+    sudo apt remove -y ansible
+  fi
+
+  local retire_dir="${ROOT_DIR}"
+  cd "${HOME}"
+
+  if [[ -d "${retire_dir}" && -f "${retire_dir}/bootstrap.sh" ]]; then
+    rm -rf "${retire_dir}"
+    echo "Removed local bootstrap checkout: ${retire_dir}" >&2
+  fi
+
+  cat >&2 <<EOF
+Bootstrap tooling has been retired from this host.
+
+Left in place:
+  - bootstrap-managed dotfiles/repos already installed elsewhere
+
+$(if [[ "${remove_ansible}" -eq 0 ]]; then printf '%s\n' '  - ansible'; fi)
+
+If you need bootstrap again later, reinstall or reclone:
+  git clone https://github.com/corriander/bootstrap.git ~/repos/bootstrap
+EOF
 }
 
 run_main() {
@@ -231,6 +285,10 @@ main() {
     clean)
       shift
       run_cleanup "$@"
+      ;;
+    retire)
+      shift
+      run_retire "$@"
       ;;
     -h|--help|help|"")
       if [[ -z "${cmd}" ]]; then
