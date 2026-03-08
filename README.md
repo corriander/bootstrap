@@ -69,8 +69,8 @@ cd ~/repos/bootstrap
 ```
 
 That playbook generates `~/.ssh/id_bootstrap`, writes a temporary
-`~/.gitconfig` that points Git at that key, prints the public key, and stops.
-Add the displayed key to GitHub with a short expiry, then continue.
+bootstrap SSH key, prints the public key, and stops. Add the displayed key to
+GitHub with a short expiry, then continue.
 
 Run the main bootstrap locally against the current machine:
 

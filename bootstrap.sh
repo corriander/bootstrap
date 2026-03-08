@@ -61,6 +61,16 @@ EOF
   fi
 }
 
+write_temp_gitconfig() {
+  cat > "${HOME}/.gitconfig" <<EOF
+[core]
+    sshCommand = ssh -i ${HOME}/.ssh/id_bootstrap -o IdentitiesOnly=yes
+[init]
+    defaultBranch = main
+EOF
+  chmod 600 "${HOME}/.gitconfig"
+}
+
 run_main() {
   local run_mr=1
   local preflight_only=0
@@ -108,6 +118,18 @@ run_main() {
   if [[ "${preflight_only}" -eq 1 ]]; then
     cmd+=(--tags preflight)
   else
+    if [[ ! -f "${HOME}/.ssh/id_bootstrap" ]]; then
+      cat >&2 <<EOF
+Bootstrap auth key is missing:
+  ${HOME}/.ssh/id_bootstrap
+
+Run:
+  ./bootstrap.sh auth
+EOF
+      return 1
+    fi
+
+    write_temp_gitconfig
     local sudo_version
     sudo_version="$(sudo --version 2>&1 | head -n1 || true)"
     if [[ "${use_become_prompt}" -eq 1 ]]; then
@@ -125,6 +147,9 @@ run_main() {
   "${cmd[@]}" "${passthrough[@]}"
 
   if [[ "${preflight_only}" -eq 1 || "${dry_run}" -eq 1 || "${run_mr}" -eq 0 ]]; then
+    if [[ -f "${HOME}/.gitconfig" && "${run_mr}" -eq 0 ]]; then
+      echo "Temporary ${HOME}/.gitconfig left in place for a later rerun." >&2
+    fi
     return 0
   fi
 

@@ -30,15 +30,5 @@
     path: "{{ bootstrap_ssh_public_key_path }}"
   register: bootstrap_public_key
 
-- name: Write temporary bootstrap git config
-  ansible.builtin.copy:
-    dest: "{{ bootstrap_temp_gitconfig_path }}"
-    mode: "0600"
-    content: |
-      [core]
-          sshCommand = ssh -i {{ bootstrap_ssh_key_path }} -o IdentitiesOnly=yes
-      [init]
-          defaultBranch = main
-
 - name: End auth preparation play after displaying bootstrap key
   ansible.builtin.meta: end_play
