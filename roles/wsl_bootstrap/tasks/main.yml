@@ -40,13 +40,13 @@
 
 - name: Check whether Oh My Zsh is already installed
   ansible.builtin.stat:
-    path: "{{ ansible_env.HOME }}/.oh-my-zsh"
+    path: "{{ oh_my_zsh_dir }}"
   register: bootstrap_oh_my_zsh_stat
 
 - name: Install Oh My Zsh
   ansible.builtin.shell: |
     set -euo pipefail
-    RUNZSH=no CHSH=no KEEP_ZSHRC=yes sh -c \
+    RUNZSH=no CHSH=no KEEP_ZSHRC=yes ZSH="{{ oh_my_zsh_dir }}" sh -c \
       "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
   args:
     executable: /bin/bash
@@ -54,6 +54,7 @@
     RUNZSH: "no"
     CHSH: "no"
     KEEP_ZSHRC: "yes"
+    ZSH: "{{ oh_my_zsh_dir }}"
   when:
     - install_oh_my_zsh | bool
     - not bootstrap_oh_my_zsh_stat.stat.exists
