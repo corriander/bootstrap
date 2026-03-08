@@ -7,14 +7,14 @@ usage() {
   cat <<'EOF'
 Usage:
   ./bootstrap.sh auth [extra ansible args...]
-  ./bootstrap.sh [--dry-run] [--with-mr] [--preflight] [extra ansible args...]
+  ./bootstrap.sh [--dry-run] [--no-mr] [--preflight] [extra ansible args...]
 
 Modes:
   auth        Generate the temporary bootstrap SSH key and temporary ~/.gitconfig.
   default     Run the main bootstrap playbook.
 
 Options:
-  --with-mr       Run `mr update` inside Ansible after bootstrap prep.
+  --no-mr         Stop after Ansible bootstrap prep and do not run `mr update`.
   --preflight     Run only the preflight checks.
   --dry-run       Run Ansible in check mode.
   -h, --help      Show this help text.
@@ -55,13 +55,14 @@ After approving the key, continue with:
   ./bootstrap.sh
 
 Then run:
-  mr update
+  If bootstrap later stops on an mr issue, fix it and rerun:
+    ./bootstrap.sh
 EOF
   fi
 }
 
 run_main() {
-  local with_mr=0
+  local run_mr=1
   local preflight_only=0
   local dry_run=0
   local use_become_prompt=0
@@ -69,8 +70,8 @@ run_main() {
 
   while (($#)); do
     case "$1" in
-      --with-mr)
-        with_mr=1
+      --no-mr)
+        run_mr=0
         shift
         ;;
       --preflight)
@@ -101,10 +102,7 @@ run_main() {
   if [[ "${dry_run}" -eq 1 ]]; then
     cmd+=(--check)
   fi
-
-  if [[ "${with_mr}" -eq 1 ]]; then
-    cmd+=(-e bootstrap_run_mr_update=true)
-  fi
+  cmd+=(-e bootstrap_run_mr_update=false)
 
   cd "${ROOT_DIR}"
   if [[ "${preflight_only}" -eq 1 ]]; then
@@ -124,7 +122,33 @@ run_main() {
     fi
   fi
 
-  exec "${cmd[@]}" "${passthrough[@]}"
+  "${cmd[@]}" "${passthrough[@]}"
+
+  if [[ "${preflight_only}" -eq 1 || "${dry_run}" -eq 1 || "${run_mr}" -eq 0 ]]; then
+    return 0
+  fi
+
+  echo "Running mr update..." >&2
+  if GIT_CONFIG_GLOBAL="${HOME}/.gitconfig" mr update; then
+    if [[ -f "${HOME}/.gitconfig" ]]; then
+      rm -f "${HOME}/.gitconfig"
+      echo "Removed temporary ${HOME}/.gitconfig." >&2
+    fi
+    return 0
+  fi
+
+  cat >&2 <<EOF
+
+mr update did not complete cleanly.
+
+Temporary bootstrap auth has been left in place:
+  ${HOME}/.gitconfig
+  ${HOME}/.ssh/id_bootstrap
+
+Resolve the reported mr/vcsh issue, then rerun:
+  ./bootstrap.sh
+EOF
+  return 1
 }
 
 main() {
