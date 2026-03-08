@@ -69,6 +69,35 @@
   when:
     - bootstrap_run_mr_update | bool
     - bootstrap_mrconfig_stat.stat.exists
+  register: bootstrap_mr_update_result
+  failed_when: false
+
+- name: Show mr update output when attention is needed
+  ansible.builtin.debug:
+    msg: |
+      mr update completed with a non-zero exit code ({{ bootstrap_mr_update_result.rc }}).
+      This usually means one or more repos need manual attention before rerunning `mr update`.
+
+      stdout:
+      {{ bootstrap_mr_update_result.stdout | default('') }}
+
+      stderr:
+      {{ bootstrap_mr_update_result.stderr | default('') }}
+  when:
+    - bootstrap_run_mr_update | bool
+    - bootstrap_mrconfig_stat.stat.exists
+    - bootstrap_mr_update_result.rc != 0
+
+- name: Mark bootstrap as incomplete when mr update needs rerun
+  ansible.builtin.debug:
+    msg: >-
+      Bootstrap is incomplete because `mr update` reported one or more repo
+      issues. Resolve the reported collisions or checkout failures, then rerun
+      `./bootstrap.sh`.
+  when:
+    - bootstrap_run_mr_update | bool
+    - bootstrap_mrconfig_stat.stat.exists
+    - bootstrap_mr_update_result.rc != 0
 
 - name: Remove temporary bootstrap git config when requested
   ansible.builtin.file:
