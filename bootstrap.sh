@@ -129,7 +129,10 @@ run_main() {
   fi
 
   echo "Running mr update..." >&2
-  if GIT_CONFIG_GLOBAL="${HOME}/.gitconfig" mr update; then
+  if (
+    cd "${HOME}"
+    GIT_CONFIG_GLOBAL="${HOME}/.gitconfig" mr update
+  ); then
     if [[ -f "${HOME}/.gitconfig" ]]; then
       rm -f "${HOME}/.gitconfig"
       echo "Removed temporary ${HOME}/.gitconfig." >&2
