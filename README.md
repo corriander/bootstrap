@@ -100,6 +100,18 @@ Run the main bootstrap but stop before `mr update`:
 ./bootstrap.sh --no-mr
 ```
 
+Remove leftover temporary bootstrap state:
+
+```bash
+./bootstrap.sh clean
+```
+
+Also remove the temporary bootstrap SSH key pair:
+
+```bash
+./bootstrap.sh clean --all
+```
+
 ## What This Playbook Does
 
 The WSL bootstrap role currently:
@@ -128,6 +140,11 @@ By default, the wrapper runs `mr update` as a plain shell command after Ansible
 bootstrap prep. This keeps `mr` output transparent while still preserving a
 two-command bootstrap flow. If `mr` fails, fix the reported issue and rerun
 `./bootstrap.sh`.
+
+The temporary `~/.gitconfig` is created only for the main bootstrap run. It is
+removed automatically after a successful run, and also removed automatically
+when `--no-mr` is used. If you need to clear bootstrap leftovers manually, use
+`./bootstrap.sh clean`.
 
 ## Testing
 

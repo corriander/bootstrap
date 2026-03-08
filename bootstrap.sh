@@ -7,16 +7,19 @@ usage() {
   cat <<'EOF'
 Usage:
   ./bootstrap.sh auth [extra ansible args...]
+  ./bootstrap.sh clean [--all]
   ./bootstrap.sh [--dry-run] [--no-mr] [--preflight] [extra ansible args...]
 
 Modes:
-  auth        Generate the temporary bootstrap SSH key and temporary ~/.gitconfig.
+  auth        Generate or reuse the temporary bootstrap SSH key.
+  clean       Remove leftover temporary bootstrap state.
   default     Run the main bootstrap playbook.
 
 Options:
   --no-mr         Stop after Ansible bootstrap prep and do not run `mr update`.
   --preflight     Run only the preflight checks.
   --dry-run       Run Ansible in check mode.
+  --all           With `clean`, also remove the bootstrap SSH key pair.
   -h, --help      Show this help text.
 EOF
 }
@@ -69,6 +72,46 @@ write_temp_gitconfig() {
     defaultBranch = main
 EOF
   chmod 600 "${HOME}/.gitconfig"
+}
+
+cleanup_temp_gitconfig() {
+  if [[ -f "${HOME}/.gitconfig" ]]; then
+    rm -f "${HOME}/.gitconfig"
+    echo "Removed temporary ${HOME}/.gitconfig." >&2
+  fi
+}
+
+run_cleanup() {
+  local remove_all=0
+
+  while (($#)); do
+    case "$1" in
+      --all)
+        remove_all=1
+        shift
+        ;;
+      -h|--help)
+        usage
+        exit 0
+        ;;
+      *)
+        echo "Unknown clean option: $1" >&2
+        usage >&2
+        return 1
+        ;;
+    esac
+  done
+
+  cleanup_temp_gitconfig
+
+  if [[ "${remove_all}" -eq 1 ]]; then
+    for path in "${HOME}/.ssh/id_bootstrap" "${HOME}/.ssh/id_bootstrap.pub"; do
+      if [[ -e "${path}" ]]; then
+        rm -f "${path}"
+        echo "Removed ${path}." >&2
+      fi
+    done
+  fi
 }
 
 run_main() {
@@ -146,10 +189,12 @@ EOF
 
   "${cmd[@]}" "${passthrough[@]}"
 
-  if [[ "${preflight_only}" -eq 1 || "${dry_run}" -eq 1 || "${run_mr}" -eq 0 ]]; then
-    if [[ -f "${HOME}/.gitconfig" && "${run_mr}" -eq 0 ]]; then
-      echo "Temporary ${HOME}/.gitconfig left in place for a later rerun." >&2
-    fi
+  if [[ "${preflight_only}" -eq 1 || "${dry_run}" -eq 1 ]]; then
+    return 0
+  fi
+
+  if [[ "${run_mr}" -eq 0 ]]; then
+    cleanup_temp_gitconfig
     return 0
   fi
 
@@ -158,10 +203,7 @@ EOF
     cd "${HOME}"
     GIT_CONFIG_GLOBAL="${HOME}/.gitconfig" mr update
   ); then
-    if [[ -f "${HOME}/.gitconfig" ]]; then
-      rm -f "${HOME}/.gitconfig"
-      echo "Removed temporary ${HOME}/.gitconfig." >&2
-    fi
+    cleanup_temp_gitconfig
     return 0
   fi
 
@@ -185,6 +227,10 @@ main() {
     auth)
       shift
       run_auth "$@"
+      ;;
+    clean)
+      shift
+      run_cleanup "$@"
       ;;
     -h|--help|help|"")
       if [[ -z "${cmd}" ]]; then
