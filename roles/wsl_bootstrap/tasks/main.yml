@@ -86,16 +86,27 @@
   changed_when: false
   when: bootstrap_clone_dotfiles_repo | bool
 
+- name: Keep only valid GitHub known_hosts entries
+  ansible.builtin.set_fact:
+    bootstrap_github_known_host_lines: >-
+      {{
+        bootstrap_github_hostkeys.stdout_lines
+        | reject('match', '^#')
+        | reject('equalto', '')
+        | list
+      }}
+  when: bootstrap_clone_dotfiles_repo | bool
+
 - name: Trust GitHub SSH host keys
   ansible.builtin.known_hosts:
     path: "{{ ansible_env.HOME }}/.ssh/known_hosts"
     name: github.com
     key: "{{ item }}"
     state: present
-  loop: "{{ bootstrap_github_hostkeys.stdout_lines }}"
+  loop: "{{ bootstrap_github_known_host_lines }}"
   when:
     - bootstrap_clone_dotfiles_repo | bool
-    - bootstrap_github_hostkeys.stdout_lines | length > 0
+    - bootstrap_github_known_host_lines | length > 0
 
 - name: Check whether dotfiles bootstrap vcsh repo already exists
   ansible.builtin.stat:
