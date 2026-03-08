@@ -13,6 +13,19 @@
     state: present
   when: bootstrap_manage_packages | bool
 
+- name: Manage WSL baseline config
+  become: true
+  ansible.builtin.copy:
+    dest: /etc/wsl.conf
+    mode: "0644"
+    content: |
+      [boot]
+      systemd=true
+
+      [automount]
+      options = "metadata"
+  when: bootstrap_manage_packages | bool
+
 - name: Ensure local bin directory exists
   ansible.builtin.file:
     path: "{{ ansible_env.HOME }}/.local/bin"
@@ -117,6 +130,49 @@
   ansible.builtin.stat:
     path: "{{ bootstrap_temp_gitconfig_path }}"
   register: bootstrap_temp_gitconfig_stat
+
+- name: Check whether private bootstrap checkout already exists
+  ansible.builtin.stat:
+    path: "{{ private_bootstrap_repo_dir }}/.git"
+  register: private_bootstrap_repo_stat
+  when: private_bootstrap_enabled | bool
+
+- name: Ensure parent directory for private bootstrap exists
+  ansible.builtin.file:
+    path: "{{ private_bootstrap_repo_dir | dirname }}"
+    state: directory
+    mode: "0755"
+  when:
+    - private_bootstrap_enabled | bool
+    - not private_bootstrap_repo_stat.stat.exists
+
+- name: Clone private bootstrap repo when missing
+  ansible.builtin.command:
+    argv:
+      - git
+      - clone
+      - --branch
+      - "{{ private_bootstrap_repo_branch }}"
+      - "{{ private_bootstrap_repo_url }}"
+      - "{{ private_bootstrap_repo_dir }}"
+  environment:
+    GIT_CONFIG_GLOBAL: "{{ bootstrap_temp_gitconfig_path }}"
+  when:
+    - private_bootstrap_enabled | bool
+    - not private_bootstrap_repo_stat.stat.exists
+    - bootstrap_temp_gitconfig_stat.stat.exists
+
+- name: Check whether private bootstrap WSL hook exists
+  ansible.builtin.stat:
+    path: "{{ private_bootstrap_wsl_hook_path }}"
+  register: private_bootstrap_wsl_hook_stat
+  when: private_bootstrap_enabled | bool
+
+- name: Run private bootstrap WSL hook
+  ansible.builtin.include_tasks: "{{ private_bootstrap_wsl_hook_path }}"
+  when:
+    - private_bootstrap_enabled | bool
+    - private_bootstrap_wsl_hook_stat.stat.exists
 
 - name: Clone dotfiles bootstrap vcsh repo when missing
   ansible.builtin.command:

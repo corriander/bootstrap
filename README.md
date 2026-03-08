@@ -18,6 +18,9 @@ normal flow is:
 2. Run this repository's Ansible playbook.
 3. Optionally restore curated data from Borg/Vorta afterwards.
 
+An optional private extension repository can hook into this public bootstrap
+for host-specific or non-public system configuration.
+
 ## Current Scope
 
 The first supported target is WSL2 Ubuntu 25.10.
@@ -38,6 +41,20 @@ The playbook is intentionally conservative:
   - package installation, directory creation, clone/update tasks
 - `group_vars/`
   - tunable defaults such as bootstrap repo URL and package set
+
+## Repo Split
+
+- public `bootstrap`
+  - bootstrap wrapper UX
+  - safe substrate defaults
+  - WSL baseline config such as `/etc/wsl.conf`
+  - optional hook point for a private extension repo
+- private `bootstrap-private`
+  - host-specific system overlays
+  - SSH server setup and hardening
+  - future non-public bootstrap tasks
+- private `mr-bootstrap`
+  - `mr`/`vcsh` config bootstrap
 
 ## Prerequisites
 
@@ -136,8 +153,9 @@ The WSL bootstrap role currently:
 6. Ensures the expected local directory layout exists.
 7. Seeds GitHub SSH host trust for bootstrap clones.
 8. Checks whether the `bootstrap` vcsh repo is already present.
-9. Clones the `bootstrap` repo via `vcsh` if missing.
-10. Runs plain `mr update` after bootstrap prep unless `--no-mr` is used.
+9. Optionally clones `~/repos/bootstrap-private` and runs a WSL hook from it if present.
+10. Clones the `bootstrap` repo via `vcsh` if missing.
+11. Runs plain `mr update` after bootstrap prep unless `--no-mr` is used.
 
 Default bootstrap installs currently include Oh My Zsh in addition to the apt
 package substrate.
@@ -165,6 +183,18 @@ place.
 
 Use `./bootstrap.sh retire --rm-ansible` if you also want to remove the
 `ansible` package from the host via `apt`.
+
+## Private Extension Hook
+
+The public bootstrap can optionally clone and use a private extension repo:
+
+- repo URL var: `private_bootstrap_repo_url`
+- local checkout: `~/repos/bootstrap-private`
+- WSL hook file: `playbooks/hooks/wsl.yml`
+
+If that hook file exists, the public WSL bootstrap playbook includes it during
+the main bootstrap run. This is the intended place for system-level config that
+is either sensitive or simply not appropriate for the public repo.
 
 ## Testing
 

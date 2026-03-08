@@ -24,6 +24,12 @@ dotfiles_bootstrap_repo_url: git@github.com:corriander/mr-bootstrap.git
 dotfiles_bootstrap_repo_dir: "{{ ansible_env.HOME }}/.local/share/vcsh/repos/{{ dotfiles_bootstrap_repo_name }}.git"
 dotfiles_bootstrap_repo_branch: main
 
+private_bootstrap_enabled: true
+private_bootstrap_repo_url: git@github.com:corriander/bootstrap-private.git
+private_bootstrap_repo_dir: "{{ ansible_env.HOME }}/repos/bootstrap-private"
+private_bootstrap_repo_branch: main
+private_bootstrap_wsl_hook_path: "{{ private_bootstrap_repo_dir }}/playbooks/hooks/wsl.yml"
+
 bootstrap_run_mr_update: false
 bootstrap_clone_dotfiles_repo: true
 bootstrap_require_wsl: true
