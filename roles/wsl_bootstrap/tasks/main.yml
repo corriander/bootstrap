@@ -162,6 +162,21 @@
     - not private_bootstrap_repo_stat.stat.exists
     - bootstrap_temp_gitconfig_stat.stat.exists
 
+- name: Update private bootstrap repo when present
+  ansible.builtin.command:
+    argv:
+      - git
+      - -C
+      - "{{ private_bootstrap_repo_dir }}"
+      - pull
+      - --ff-only
+  environment:
+    GIT_CONFIG_GLOBAL: "{{ bootstrap_temp_gitconfig_path }}"
+  when:
+    - private_bootstrap_enabled | bool
+    - private_bootstrap_repo_stat.stat.exists
+    - bootstrap_temp_gitconfig_stat.stat.exists
+
 - name: Check whether private bootstrap WSL hook exists
   ansible.builtin.stat:
     path: "{{ private_bootstrap_wsl_hook_path }}"
