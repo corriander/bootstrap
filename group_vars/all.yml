@@ -30,8 +30,6 @@ bootstrap_clone_dotfiles_repo: true
 bootstrap_require_wsl: true
 bootstrap_prepare_auth: true
 bootstrap_manage_packages: true
-install_oh_my_zsh: true
-oh_my_zsh_dir: "{{ ansible_env.HOME }}/.config/omz"
 bootstrap_ssh_key_type: ed25519
 bootstrap_ssh_key_path: "{{ ansible_env.HOME }}/.ssh/id_bootstrap"
 bootstrap_ssh_public_key_path: "{{ bootstrap_ssh_key_path }}.pub"
