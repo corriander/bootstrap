@@ -3,17 +3,23 @@ wsl_bootstrap_packages:
   - ca-certificates
   - curl
   - eza
-  - fd-find
   - git
   - myrepos
   - openssh-client
   - python3
   - python3-apt
-  - ripgrep
   - vcsh
   - zoxide
   - zsh
   - starship
+  # telescope.nvim dependencies
+  - fd-find
+  - ripgrep
+  - make
+  - cmake
+  # tree-sitter.nvim dependencies
+  - gcc
+  - g++
 
 # WARNING: This must be exactly in sync with the mr config in ~/.config/mr/repos-available
 dotfiles_bootstrap_config_dir: "{{ ansible_env.HOME }}/.config/vcsh"
