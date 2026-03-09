@@ -76,6 +76,14 @@ sudo apt install -y ansible git
 git clone https://github.com/corriander/bootstrap.git ~/repos/bootstrap
 ```
 
+That first clone uses HTTPS on purpose so the repo is pullable on a fresh
+machine before bootstrap SSH auth exists. If you later want to make changes to
+this repository from the bootstrapped host, switch the checkout to SSH:
+
+```bash
+git -C ~/repos/bootstrap remote set-url origin git@github.com:corriander/bootstrap.git
+```
+
 ## Usage
 
 Prepare temporary bootstrap auth:
